@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!lt7vxx7+o2pzmu-j79mc*%ri7=vc=60yvm6c9176=tjvs)lt^'
+SECRET_KEY = 'django-insecure-7!07v+64%c=!tk-e@a%!bw1npomsox=eo6ozmjq09rh(&bp%b3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'Pokedex_selfee.Auth',
+    'Pokedex_selfee.Pokedex_App',
 ]
 
 MIDDLEWARE = [
