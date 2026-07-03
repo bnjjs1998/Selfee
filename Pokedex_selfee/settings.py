@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+    'rest_framework.authtoken',
+
     'Pokedex_selfee.Auth',
     'Pokedex_selfee.Pokedex_App',
 ]
