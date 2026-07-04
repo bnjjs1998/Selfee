@@ -27,3 +27,20 @@ class LoginSessionTests(TestCase):
         auth_response = self.client.get(reverse('login'))
         self.assertEqual(auth_response.status_code, 200)
         self.assertTrue(auth_response.json()['authenticated'])
+
+    def test_logout_clears_session(self):
+        user = get_user_model().objects.create_user(username='alice', password='secret123')
+
+        login_response = self.client.post(reverse('login'), {
+            'username': 'alice',
+            'password': 'secret123',
+        })
+        self.assertEqual(login_response.status_code, 200)
+
+        logout_response = self.client.post(reverse('logout'))
+        self.assertEqual(logout_response.status_code, 200)
+        self.assertEqual(logout_response.json()['message'], 'Déconnexion réussie')
+
+        session_response = self.client.get(reverse('session_status'))
+        self.assertEqual(session_response.status_code, 401)
+        self.assertEqual(session_response.json()['error'], 'Utilisateur non authentifié')
