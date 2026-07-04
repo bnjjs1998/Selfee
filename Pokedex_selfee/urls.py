@@ -19,6 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('Pokedex_selfee.Auth.urls')),  
-    path('/pokeddex', include('Pokedex_selfee.Pokedex_App.urls')),  
+    path('api/', include('Pokedex_selfee.Auth.urls')),
+    path('pokeddex/', include('Pokedex_selfee.Pokedex_App.urls')),
 ]

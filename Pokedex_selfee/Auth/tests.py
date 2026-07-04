@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -8,3 +9,21 @@ class HelloWorldViewTests(TestCase):
         response = self.client.get(reverse('hello_world'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Hello World !')
+
+
+class LoginSessionTests(TestCase):
+
+    def test_login_sets_session_cookie_and_auth_state(self):
+        user = get_user_model().objects.create_user(username='alice', password='secret123')
+
+        response = self.client.post(reverse('login'), {
+            'username': 'alice',
+            'password': 'secret123',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('sessionid', response.cookies)
+
+        auth_response = self.client.get(reverse('login'))
+        self.assertEqual(auth_response.status_code, 200)
+        self.assertTrue(auth_response.json()['authenticated'])
