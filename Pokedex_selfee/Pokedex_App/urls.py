@@ -1,15 +1,11 @@
 from django.urls import path
-from django.http import HttpResponse
-from .service import get_pokemon_data
-from .views import get_pokemon_view
-
-
-def hello_world(request):
-    return HttpResponse("Hello World !")
-
+from Pokedex_selfee.Pokedex_App.views.types_pokemonviews import add_pokemon_type_view, UserGroupRemoveView
 
 
 urlpatterns = [
-    path('hello/', hello_world, name='hello_world'),
-    path('pokemon/<str:pokemon_name>/', get_pokemon_view, name='get_pokemon_data'),
+    path('group/<str:pokemon_type>/add/', add_pokemon_type_view, name='add_pokemon_type'),
+    path('group/<str:pokemon_type>/remove/', UserGroupRemoveView.as_view(), name='remove_pokemon_type'),
 ]
+
+
+# path('group/<str:pokemon_type>/add/', PokemonViewFTypes.as_view(), name='add_pokemon_type'),

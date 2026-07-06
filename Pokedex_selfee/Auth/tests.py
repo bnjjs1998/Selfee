@@ -23,6 +23,7 @@ class LoginSessionTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('sessionid', response.cookies)
+        self.assertIn('token', response.json())
 
         auth_response = self.client.get(reverse('login'))
         self.assertEqual(auth_response.status_code, 200)
