@@ -1,10 +1,9 @@
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from ..service import get_pokemon_data
 
-def get_pokemon_view(request, pokemon_name):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Utilisateur non authentifié'}, status=401)
 
+def get_pokemon_view(request, pokemon_name):
     pokemon_data = get_pokemon_data(pokemon_name)
     if pokemon_data is None:
         return JsonResponse({'error': 'Pokémon non trouvé'}, status=404)

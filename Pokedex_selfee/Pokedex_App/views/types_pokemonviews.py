@@ -1,16 +1,18 @@
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from ..service.types_service import add_pokemon_type_service
 
 
 @require_POST
+@login_required
 def add_pokemon_type_view(request, pokemon_type):
     """Handle adding/fetching data for a given pokemon type.
 
     Expects `pokemon_type` from the URL and returns JSON from the service.
     """
-    result = add_pokemon_type_service(pokemon_type)
+    result = add_pokemon_type_service(request.user, pokemon_type)
     status = 200 if "error" not in result else 404
     return JsonResponse(result, status=status)
 

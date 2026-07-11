@@ -1,4 +1,6 @@
 import requests
+from django.contrib.auth.models import Group
+from django.db import transaction
 
 
 def get_typespokemon_data(pokemon_type):
@@ -13,11 +15,14 @@ def get_typespokemon_data(pokemon_type):
     return None
 
 
-def add_pokemon_type_service(pokemon_type):
-    """Return data for a pokemon type: {'type': name, 'pokemons': [names]} or {'error': msg}.
 
-    Uses the public pokeapi to fetch the type and lists associated pokemon names.
+def add_pokemon_type_service(user, pokemon_type):
     """
+    Fonction protégée par @login_required.
+    """
+    if user is None or not user.is_authenticated:
+        return {"error": "Utilisateur non authentifié"}
+
     if not pokemon_type:
         return {"error": "Type non précisé"}
 
@@ -26,15 +31,12 @@ def add_pokemon_type_service(pokemon_type):
         return {"error": "Type de Pokémon introuvable"}
 
     type_name = data.get("name")
-    pokemon_entries = data.get("pokemon", [])
-    pokemon_names = []
-    for entry in pokemon_entries:
-        p = entry.get("pokemon")
-        if isinstance(p, dict) and "name" in p:
-            pokemon_names.append(p["name"])
+    
+    with transaction.atomic():
+        group, created = Group.objects.get_or_create(name=type_name)
+        user.groups.add(group)
 
-    return {"type": type_name, "pokemons": pokemon_names}
-
+    return {"type": type_name, "message": "Ajout au groupe réussi"}
 
 def get_all_types_service():
     """Fetch and return the list of all Pokemon types (names) from pokeapi."""
