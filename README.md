@@ -52,8 +52,6 @@ python manage.py test Pokedex_selfee.Pokedex_App.tests.test_pokemon_views
 ## Endpoints
 
 ### Auth
-
-- GET /api/hello/ une route qui 
 - POST /api/login/
 - GET /api/session/
 - POST /api/logout/
