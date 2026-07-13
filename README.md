@@ -157,5 +157,6 @@ Invoke-RestMethod -Method GET `
 - En PowerShell, curl est un alias de Invoke-WebRequest.
 - Utilise /api/pokemon/ (avec slash final) pour eviter une redirection qui peut faire perdre le header Authorization.
 
+ù*
 # tetst
 
