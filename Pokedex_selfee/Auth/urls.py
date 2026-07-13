@@ -1,7 +1,7 @@
 from django.urls import path
 from django.http import HttpResponse
 
-from Pokedex_selfee.Auth.views import LoginView, LogoutView, SessionView
+from Pokedex_selfee.Auth.Views.views import LoginView, LogoutView, SessionView, UserGroupView 
 
 
 def hello_world(request):
@@ -12,5 +12,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('session/', SessionView.as_view(), name='session_status'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('user/me', SessionView.as_view(), name='user_me'),
+    path('user/me', UserGroupView.as_view(), name='user_me'),
 ]
