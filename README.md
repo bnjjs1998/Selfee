@@ -153,7 +153,9 @@ Invoke-RestMethod -Method GET `
 
 ## Notes
 
-- Les endpoints groupes et pokemon sont proteges (authentification requise).
-- Base par defaut: SQLite (db.sqlite3).
+- Les endpoints p kemon sont proteges (authentification requise).
 - En PowerShell, curl est un alias de Invoke-WebRequest.
 - Utilise /api/pokemon/ (avec slash final) pour eviter une redirection qui peut faire perdre le header Authorization.
+
+# tetst
+
