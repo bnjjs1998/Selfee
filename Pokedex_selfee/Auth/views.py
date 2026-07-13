@@ -39,7 +39,7 @@ class SessionView(APIView):
 
     def get(self, request):
         if not request.user.is_authenticated:
-            return Response({'error': 'Utilisateur non authentifi d,mkdqsldkddmkslkdksS'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Utilisateur non authentifié'}, status=status.HTTP_401_UNAUTHORIZED)
         
         user_groups = list(request.user.groups.values_list('name', flat=True))
         

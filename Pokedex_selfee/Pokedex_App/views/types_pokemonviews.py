@@ -1,43 +1,77 @@
-
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from ..service.types_service import add_pokemon_type_service
-
-
-@require_POST
-@login_required
-def add_pokemon_type_view(request, pokemon_type):
-    """Handle adding/fetching data for a given pokemon type.
-
-    Expects `pokemon_type` from the URL and returns JSON from the service.
-    """
-    result = add_pokemon_type_service(request.user, pokemon_type)
-    status = 200 if "error" not in result else 404
-    return JsonResponse(result, status=status)
-
-
-# DRF-based view to remove a type from the authenticated user's groups
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status as drf_status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.contrib.auth.models import Group
+from rest_framework import status as drf_status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from ..service.types_service import get_all_types_service
+
+
+def _is_valid_pokemon_type(pokemon_type):
+    response = get_all_types_service()
+    if "error" in response:
+        return None
+
+    available_types = set(response.get("types", []))
+    return pokemon_type.lower() in available_types
+
+
+class UserGroupAddView(APIView):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pokemon_type):
+        is_valid_type = _is_valid_pokemon_type(pokemon_type)
+        if is_valid_type is None:
+            return Response(
+                {"error": "Impossible de valider le type Pokemon pour le moment"},
+                status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if not is_valid_type:
+            return Response({"error": "Type de Pokemon introuvable"}, status=drf_status.HTTP_404_NOT_FOUND)
+
+        normalized_type = pokemon_type.lower()
+        group, _ = Group.objects.get_or_create(name=normalized_type)
+        request.user.groups.add(group)
+
+        return Response(
+            {
+                "type": normalized_type,
+                "message": "Ajout au groupe reussi",
+            },
+            status=drf_status.HTTP_200_OK,
+        )
 
 
 class UserGroupRemoveView(APIView):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, pokemon_type):
+    def _remove_group(self, request, pokemon_type):
+        is_valid_type = _is_valid_pokemon_type(pokemon_type)
+        if is_valid_type is None:
+            return Response(
+                {"error": "Impossible de valider le type Pokemon pour le moment"},
+                status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if not is_valid_type:
+            return Response({"error": "Type de Pokemon introuvable"}, status=drf_status.HTTP_404_NOT_FOUND)
+
+        normalized_type = pokemon_type.lower()
         try:
-            grp = Group.objects.get(name__iexact=pokemon_type)
+            grp = Group.objects.get(name=normalized_type)
         except Group.DoesNotExist:
-            return Response({'error': 'Groupe introuvable'}, status=drf_status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Groupe introuvable"}, status=drf_status.HTTP_404_NOT_FOUND)
 
         if not request.user.groups.filter(pk=grp.pk).exists():
-            return Response({'error': "L'utilisateur n'appartient pas à ce groupe"}, status=drf_status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "L'utilisateur n'appartient pas a ce groupe"}, status=drf_status.HTTP_400_BAD_REQUEST)
 
         request.user.groups.remove(grp)
-        return Response({'message': f"Groupe '{grp.name}' supprimé de l'utilisateur"}, status=drf_status.HTTP_200_OK)
+        return Response({"message": f"Groupe '{grp.name}' supprime de l'utilisateur"}, status=drf_status.HTTP_200_OK)
+
+    def post(self, request, pokemon_type):
+        return self._remove_group(request, pokemon_type)
+
+    def delete(self, request, pokemon_type):
+        return self._remove_group(request, pokemon_type)
