@@ -19,6 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('Pokedex_selfee.Auth.urls')),  # Vos routes seront accessibles via /auth/...
-    path('', include('Pokedex_selfee.Pokedex_App.urls')),  # Accès à la page d’accueil de l’app Pokedex
+    path('api/', include('Pokedex_selfee.Auth.urls')),
+    path('api/', include('Pokedex_selfee.Pokedex_App.urls')),
 ]
