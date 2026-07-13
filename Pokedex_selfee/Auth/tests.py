@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
 
 class HelloWorldViewTests(TestCase):
@@ -45,3 +46,45 @@ class LoginSessionTests(TestCase):
         session_response = self.client.get(reverse('session_status'))
         self.assertEqual(session_response.status_code, 401)
         self.assertEqual(session_response.json()['error'], 'Utilisateur non authentifié')
+
+    def test_login_invalid_credentials(self):
+        get_user_model().objects.create_user(username='alice', password='secret123')
+
+        response = self.client.post(reverse('login'), {
+            'username': 'alice',
+            'password': 'bad-pass',
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error'], 'Identifiants invalides')
+
+    def test_session_with_token_authentication(self):
+        user = get_user_model().objects.create_user(username='bob', password='secret123')
+        token, _ = Token.objects.get_or_create(user=user)
+
+        response = self.client.get(
+            reverse('session_status'),
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['authenticated'])
+        self.assertEqual(response.json()['username'], 'bob')
+
+    def test_user_me_with_token_returns_groups(self):
+        user = get_user_model().objects.create_user(username='charlie', password='secret123')
+        token, _ = Token.objects.get_or_create(user=user)
+
+        response = self.client.get(
+            reverse('user_me'),
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['user_id'], user.pk)
+        self.assertEqual(response.json()['username'], 'charlie')
+        self.assertIn('user_groups', response.json())
+
+    def test_user_me_requires_authentication(self):
+        response = self.client.get(reverse('user_me'))
+        self.assertEqual(response.status_code, 403)

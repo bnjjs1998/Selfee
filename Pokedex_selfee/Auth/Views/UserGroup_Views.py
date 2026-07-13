@@ -15,4 +15,11 @@ class UserGroupView(APIView):
 
     def get(self, request):
         user_groups = list(request.user.groups.values_list('name', flat=True))
-        return Response({'user_groups': user_groups}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                'user_id': request.user.pk,
+                'username': request.user.username,
+                'user_groups': user_groups,
+            },
+            status=status.HTTP_200_OK,
+        )
