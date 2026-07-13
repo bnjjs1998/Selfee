@@ -1,6 +1,9 @@
 # Selfee - API Django Pokedex
 
-API Django qui gere l'authentification (session + token) et la gestion de groupes Pokemon par type.
+API Django pour:
+- authentification (session + token)
+- gestion des groupes Pokemon par type
+- listing des Pokemon accessibles selon les groupes de l'utilisateur
 
 ## Prerequis
 
@@ -14,7 +17,7 @@ cd C:\Users\bapti\Desktop\Selfee
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install Django djangorestframework requests
+pip install -r requirements.txt
 ```
 
 ## Initialisation de la base
@@ -31,7 +34,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Base URL locale: `http://127.0.0.1:8000`
+Base URL locale: http://127.0.0.1:8000
 
 ## Lancer les tests
 
@@ -39,39 +42,46 @@ Base URL locale: `http://127.0.0.1:8000`
 python manage.py test
 ```
 
-Test cible (groupes):
+Tests cibles:
 
 ```powershell
 python manage.py test Pokedex_selfee.Pokedex_App.tests.test_group_views
+python manage.py test Pokedex_selfee.Pokedex_App.tests.test_pokemon_views
 ```
 
-## Endpoints principaux
+## Endpoints
 
 ### Auth
 
-- `GET /api/hello/`
-- `POST /api/login/`
-- `GET /api/session/`
-- `POST /api/logout/`
-- `DELETE /api/logout/`
-- `GET /api/user/me`
+- GET /api/hello/ une route qui 
+- POST /api/login/
+- GET /api/session/
+- POST /api/logout/
+- DELETE /api/logout/
+- GET /api/user/me
 
 ### Groupes Pokemon
 
-- `POST /api/group/<pokemon_type>/add/`
-- `DELETE /api/group/<pokemon_type>/remove/`
+- POST /api/group/<pokemon_type>/add/
+- POST /api/group/<pokemon_type>/remove/
+- DELETE /api/group/<pokemon_type>/remove/
 
-## Commande à utiliser dans le shell
+### Pokemon
 
-### 1) Login (PowerShell)
+- GET /api/pokemon/
+  Retourne la liste des Pokemon accessibles selon les groupes de l'utilisateur.
+  Format de sortie: id + name.
 
+- GET /api/pokemon/<pokemon_name>/
+  Retourne le detail d'un Pokemon, avec types filtres selon les groupes de l'utilisateur.
 
-j'ai utiliser un superutilisateur pour les différentes opération mais on peut le faire avec user classique, je n'ai juste pas la route register car ce n'est pas demander dans ce test.
+## Commandes shell (PowerShell)
 
-python manage.py createsuperuser
+Note: superuser ou user classique, les deux fonctionnent.
+
+### 1) Login
 
 ```powershell
-
 $body = @{ username = "bnjjs"; password = "1234" } | ConvertTo-Json -Compress
 $login = Invoke-RestMethod -Method POST `
   -Uri "http://127.0.0.1:8000/api/login/" `
@@ -80,38 +90,70 @@ $login = Invoke-RestMethod -Method POST `
 
 $login
 ```
-### 2) Ajouter un type au user connecte
 
-Avec cookie de session actif (apres login)
-```powershell
-curl -X POST http://127.0.0.1:8000/api/group/grass/add/
-```
-
-### 3) Supprimer un type (PowerShell)
+### 2) Ajouter un type
 
 ```powershell
-$body = @{ username = "bnjjs"; password = "1234" } | ConvertTo-Json -Compress
-$login = Invoke-RestMethod -Method POST `
-  -Uri "http://127.0.0.1:8000/api/login/" `
-  -ContentType "application/json" `
-  -Body $body
-
 Invoke-RestMethod -Method POST `
   -Uri "http://127.0.0.1:8000/api/group/grass/add/" `
   -Headers @{ Authorization = "Token $($login.token)" }
+```
 
+### 3) Verifier la session
+
+```powershell
+Invoke-RestMethod -Method GET `
+  -Uri "http://127.0.0.1:8000/api/session/" `
+  -Headers @{ Authorization = "Token $($login.token)" }
+```
+
+### 4) Recuperer user/me
+
+```powershell
+Invoke-RestMethod -Method GET `
+  -Uri "http://127.0.0.1:8000/api/user/me" `
+  -Headers @{ Authorization = "Token $($login.token)" }
+```
+
+### 5) Retirer un type par ex le type grass mais il faut les remplacer par le types souhaité
+
+
+```powershell
 Invoke-RestMethod -Method DELETE `
   -Uri "http://127.0.0.1:8000/api/group/grass/remove/" `
   -Headers @{ Authorization = "Token $($login.token)" }
-  
 ```
- Invoke-RestMethod -Method GET `
-  -Uri "http://127.0.0.1:8000/api/user/me" `
-  -Headers @{ Authorization = "Token $($login.token)" } 
+
+### 6) Lister les Pokemon accessibles
+
+```powershell
+Invoke-RestMethod -Method GET `
+  -Uri "http://127.0.0.1:8000/api/pokemon/" `
+  -Headers @{ Authorization = "Token $($login.token)" }
+```
+
+Afficher toute la liste sans troncature dans PowerShell:
+
+```powershell
+$resp = Invoke-RestMethod -Method GET `
+  -Uri "http://127.0.0.1:8000/api/pokemon/" `
+  -Headers @{ Authorization = "Token $($login.token)" }
+
+$resp.pokemons.Count
+$resp.pokemons | Format-Table -AutoSize
+```
+
+### 7) Detail d'un Pokemon
+
+```powershell
+Invoke-RestMethod -Method GET `
+  -Uri "http://127.0.0.1:8000/api/pokemon/bulbasaur/" `
+  -Headers @{ Authorization = "Token $($login.token)" }
+```
 
 ## Notes
 
-- Les endpoints de groupes sont proteges: utilisateur authentifie requis.
-- La base par defaut est SQLite (`db.sqlite3`).
-- En PowerShell, `curl` est un alias de `Invoke-WebRequest`, donc la syntaxe `-H/-d` style cURL ne fonctionne pas.
-- Sur ce projet j'utilise Invoke-RestMethod`.
+- Les endpoints groupes et pokemon sont proteges (authentification requise).
+- Base par defaut: SQLite (db.sqlite3).
+- En PowerShell, curl est un alias de Invoke-WebRequest.
+- Utilise /api/pokemon/ (avec slash final) pour eviter une redirection qui peut faire perdre le header Authorization.
